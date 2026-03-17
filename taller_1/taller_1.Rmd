@@ -2,7 +2,7 @@
 title: "Análisis Estadístico de Datos"
 subtitle: "Taller 1"
 author: "Grupo 3: Vanessa Ochoa, Juan Zamora y Nilson Amaya"
-date: "8 de marzo de 2026"
+date: "17 de marzo de 2026"
 output:
   pdf_document:
     toc: true
@@ -51,12 +51,13 @@ ORI <- read_delim(
 ) %>% clean_names()
 
 str(ORI)
-
 ```
 ```{r, echo=TRUE, include=TRUE, warning=FALSE}
 dim(ORI) # 4543 Filas y 18 columnas
 
 ```
+La base de datos importada está compuesta por 4.543 registros (filas) y 18 variables (columnas), correspondientes a observaciones de tipo meteorológico. Las variables incluyen información geográfica (como región, departamento, municipio, latitud y longitud), variables temporales (fecha y hora), y un conjunto de mediciones climáticas tales como temperatura, velocidad y dirección del viento, presión atmosférica, punto de rocío, cobertura nubosa, precipitación, humedad y probabilidad de tormenta, así como una variable categórica de pronóstico.
+
 ```{r, echo=TRUE, include=TRUE, warning=FALSE}
 ori_mediodia <- ORI %>%
   filter(as.character(hora) == "12:00:00")
@@ -64,6 +65,10 @@ ori_mediodia <- ORI %>%
 dim(ori_mediodia)
 
 ```
+
+Al realizar el filtrado de la base de datos considerando únicamente los registros cuya variable hora corresponde exactamente a las 12:00:00 (mediodía), se obtuvo un total de 118 observaciones. Esto indica que, dentro del conjunto total de datos, 118 registros fueron medidos o recolectados en ese momento específico del día, manteniendo las mismas 18 variables asociadas a cada observación.
+
+
 ## Pregunta 2. 
 
 Para los registros recolectados a medio día ¿cuál es el pronóstico climático más frecuente? ¿cuál es el menos frecuente?
@@ -73,9 +78,11 @@ Para los registros recolectados a medio día ¿cuál es el pronóstico climátic
 freq_pro<- ori_mediodia %>%
   count(pronostico)
 
-knitr::kable(freq_pro, caption = "Pronostico al medio dia")
+knitr::kable(freq_pro %>% arrange(desc(n)), caption = "Pronostico al medio dia") 
 
 ```
+
+Para los registros recolectados a las 12:00 (mediodía), el pronóstico climático más frecuente es “Parcialmente Nublado”, con un total de 63 observaciones, lo que indica que esta condición predomina en ese horario dentro de la base analizada. En contraste, el pronóstico menos frecuente es “Parcialmente Nublado - Tormenta Ligera”, con 2 registros, evidenciando que este tipo de condición climática ocurre de manera muy ocasional al mediodía.
 
 ## Pregunta 3.
 
@@ -92,7 +99,15 @@ knitr::kable(clase_variables, caption = "Clase de las variables en R")
 
 ```
 
+Las variables analizadas se clasifican según su escala de medición y su clase en R de la siguiente manera:
 
+- Pronóstico: es una variable cualitativa nominal, ya que representa categorías sin un orden inherente (por ejemplo, despejado, nublado, etc.). En R está almacenada como tipo character.
+
+- Municipio: corresponde a una variable cualitativa nominal, dado que identifica nombres de lugares sin jerarquía. En R también se encuentra como character.
+
+- Temperatura: es una variable cuantitativa continua, ya que puede tomar valores numéricos en un rango continuo. En R está definida como numeric.
+
+- Velocidad del viento: igualmente es una variable cuantitativa continua, debido a que se mide en valores numéricos que pueden variar de forma continua. En R su clase es numeric.
 
 
 ## Pregunta 4.
@@ -110,6 +125,10 @@ ggplot(ori_mediodia, aes(y = temperatura)) +
   theme_minimal()
 ```
 
+A partir del diagrama de caja, se ve que la temperatura al mediodía suele estabilizarse en torno a los 30°C, que funciona como el valor central de la medición. La mayor parte de los datos se concentran en un margen bastante estrecho, entre los 29°C y los 31.5°C, lo que demuestra que el clima es muy constante y tiene poca variabilidad. No obstante, el gráfico muestra algunos registros inusualmente bajos, entre los 23°C y 25°C, que se salen del comportamiento normal.Porr lo general, la temperatura a esa hora es bastante predecible, con la excepción de esos pocos días donde tuvo una temperatura menor comparado con lo habitual.
+
+
+
 ## Pregunta 5.
 
 Para los registros recolectados a medio día, describa de manera numérica mediante la función summary() la temperatura y la velocidad del viento univariadamente. ¿Concuerda su descripción con los gráficos de boxplot previamente presentados?.
@@ -117,9 +136,16 @@ Para los registros recolectados a medio día, describa de manera numérica media
 
 ```{r, echo=TRUE, include=TRUE}
 summary(ori_mediodia$temperatura)
+```
+
+Al analizar los datos de temperatura a medio día, se observa que la mayoría de los valores se concentran alrededor de los 30°C, ya que la mediana es de 30.4°C y el promedio es cercano (29.75°C). Esto indica que, en general, las temperaturas son bastante estables en ese horario. La mayoría de los datos se ubican entre aproximadamente 28.8°C y 31.3°C, lo que muestra que no hay mucha variación. Sin embargo, hay algunos valores más bajos (alrededor de 22°C–25°C) que se pueden considerar atípicos frente al comportamiento general.
+
+```{r, echo=TRUE, include=TRUE}
 
 summary(ori_mediodia$velocidad_del_viento)
 ```
+En cuanto a la velocidad del viento, los valores son más bajos y también bastante concentrados. La mayoría de las observaciones están entre 1.0 y 2.2, con una mediana de 1.7, lo que indica que el viento a medio día suele ser suave. El valor máximo llega a 3.7, pero en general no hay cambios muy bruscos, por lo que la variabilidad es moderada.
+
 
 ## Pregunta 6. 
 
@@ -128,9 +154,16 @@ Para los registros recolectados a medio día, determine si existen o no observac
 ```{r, echo=TRUE, include=TRUE}
 out_presion <- boxplot(ori_mediodia$presion, plot = FALSE)$out
 out_presion
+```
+
+```{r, echo=TRUE, include=TRUE}
 out_rocio <- boxplot(ori_mediodia$punto_de_rocio, plot = FALSE)$out
 out_rocio
 ```
+
+A partir del análisis con el diagrama de caja de Tukey, se observa que para la variable presión sí existen observaciones atípicas, ya que se identifica al menos un valor fuera del rango esperado (por ejemplo, alrededor de 1015.7). En cambio, para la variable punto de rocío no se evidencian valores atípicos, dado que el resultado no arroja ningún dato fuera de los límites (numeric(0)).
+
+En este sentido, se puede concluir que la presión es la variable que presenta mayor número de atipicidades, mientras que el punto de rocío muestra un comportamiento más estable y sin valores extremos en los datos recolectados a medio día.
 
 ## Pregunta 7. 
 
@@ -153,6 +186,8 @@ ggExtra::ggMarginal(p,
                     fill = "lightblue")
 ```
 
+A partir del diagrama de dispersión, se observa que los puntos están bastante dispersos y no siguen una forma clara, lo que sugiere que no hay una relación fuerte entre la temperatura y la velocidad del viento a medio día. Es decir, cuando la temperatura aumenta, la velocidad del viento no necesariamente aumenta ni disminuye de manera consistente.
+
 ## Pregunta 8. 
 
 Para los registros recolectados a medio día, describa de manera numérica la asociación entre temperatura y velocidad del viento a partir de la covarianza y el coeficiente de correlación de Pearson. ¿Parecen correlacionarse las dos variables? ¿en qué unidades se encuentran cada una de las dos medidas anteriormente mencionadas?
@@ -162,14 +197,24 @@ Para los registros recolectados a medio día, describa de manera numérica la as
 cov(ori_mediodia$temperatura,
     ori_mediodia$velocidad_del_viento)
 
+
+```
+
+A partir de los resultados obtenidos, la covarianza entre la temperatura y la velocidad del viento es aproximadamente 0.047, lo que indica una relación positiva muy débil entre ambas variables.
+```{r, echo=TRUE, include=TRUE}
 cor(ori_mediodia$temperatura,
     ori_mediodia$velocidad_del_viento)
 
 ```
+Por otro lado, el coeficiente de correlación de Pearson es cercano a 0.026, valor muy cercano a cero, lo que confirma que no existe una correlación lineal significativa entre la temperatura y la velocidad del viento a medio día. En otras palabras, los cambios en la temperatura no están asociados de manera clara con cambios en la velocidad del viento.
+
+En cuanto a las unidades, la covarianza se expresa en unidades combinadas de ambas variables (en este caso, grados de temperatura multiplicados por unidades de velocidad del viento), por lo que no es fácil de interpretar directamente.
 
 ## Pregunta 9.
 
 Para los registros recolectados a medio día, responda. Son estos datos ¿univariados, bivariados o multivariados?
+
+Para los registros recolectados a medio día, los datos analizados en este punto son bivariados, porque se está estudiando la relación entre dos variables al mismo tiempo: la temperatura y la velocidad del viento. No son univariados, porque no se está describiendo una sola variable por separado, ni multivariados, porque no se están considerando tres o más variables de manera conjunta.
 
 # Parte 2. Estimación de la densidad
 
@@ -200,6 +245,8 @@ ggplot(ori_mediodia, aes(x = temperatura)) +
   theme_minimal()
 ```
 
+Con base al gráfico, no se podría afirmar que los datos siguen una distribución normal porque, aunque la mayor parte se concentra en el centro, el gráfico muestra una clara asimetría. La presencia de esos valores bajos (entre 23°C y 26°C) crea una "cola" hacia la izquierda que rompe la simetría necesaria para una curva normal perfecta. Además, al comparar los datos reales con la línea punteada (la normal teórica), se ve que no encajan bien, especialmente en los extremos. En resumen, esos días inusualmente fríos y la falta de equilibrio en la forma de la curva indican que los datos no se comportan de manera totalmente "normal" o estándar.
+
 ## Pregunta 11.
 
 Para los registros recolectados a medio día, elabore la estimación histograma de la densidad y la estimación kernel de la densidad para la variable Presión ¿Es la distribución estimada simétrica? explique.
@@ -218,6 +265,8 @@ ggplot(ori_mediodia, aes(x = presion)) +
   ) +
   theme_minimal()
 ```
+Al observar el histograma de la presión, se nota claramente que la distribución no es simétrica. Aunque la mayor concentración de datos ocurre al principio, cerca de los 1012, el gráfico se alarga notablemente hacia la derecha debido a registros de presión más altos que llegan hasta los 1015-1016. Esta "cola" hacia los valores superiores genera un sesgo positivo, lo que significa que los datos no se reparten de forma equilibrada a ambos lados del punto máximo, sino que tienden a dispersarse más hacia las presiones elevadas.
+
 
 ## Pregunta 12.
 
@@ -245,3 +294,5 @@ ggplot(ori_mediodia, aes(x = velocidad_del_viento)) +
   ) +
   theme_minimal()
 ```
+
+Al comparar la curva real (roja) con la curva normal teórica (azul punteada), se nota que la velocidad del viento no se aproxima bien al modelo normal. La distribución real tiene dos picos, mientras que la normal solo debería tener uno en el centro. Además, la curva roja está por debajo de la azul en la parte más alta y tiene una caída más irregular hacia la derecha. Por estas diferencias en la forma y la presencia de esos dos picos, no se puede decir que la velocidad del viento siga un comportamiento normal.
